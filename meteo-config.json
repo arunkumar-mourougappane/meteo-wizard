@@ -1,0 +1,18 @@
+{
+   "app_config": {
+      "latitude": 0,
+      "longitude": 0,
+      "temperature_from_gnd":1,
+      "relative_humidity": true,
+      "apparent_temperature": true,
+      "precipitation_probability": true,
+      "precipitation": true,
+      "rain": true,
+      "showers": true,
+      "snowfall": true,
+      "weather_code": true,
+      "visibility": true,
+      "forecast_days": 1,
+      "past_days": 1
+   }
+}

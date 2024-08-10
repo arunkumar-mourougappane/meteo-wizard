@@ -1,6 +1,10 @@
 use core::fmt;
+use std::str::FromStr;
 
 const OPEN_METEO_API_URL: &str = "https://api.open-meteo.com/v1/forecast";
+
+#[derive(Debug, PartialEq, Eq)]
+pub struct ParseEnumError;
 
 #[derive(Debug)]
 pub enum HourlyTempFromGround {
@@ -21,6 +25,20 @@ impl fmt::Display for HourlyTempFromGround {
             HourlyTempFromGround::TemAt180m => write!(f, "hourly=temperature_180m"),
         }
     }
+}
+
+impl FromStr for HourlyTempFromGround {
+    fn from_str(temperature_set: &str) -> Result<HourlyTempFromGround, ParseEnumError> {
+        match temperature_set {
+            "1" => Ok(Self::TempAt2m),
+            "2" => Ok(Self::TempAt80m),
+            "3" => Ok(Self::TemAt120m),
+            "4" => Ok(Self::TemAt180m),
+            _ => Ok(Self::Unspecified),
+        }
+    }
+
+    type Err = ParseEnumError;
 }
 
 #[derive(Debug)]

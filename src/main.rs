@@ -1,18 +1,30 @@
 use meteo_wizard::{
+    geo_location::{self},
     settings::url_config::{HourlyTempFromGround, UrlConfig},
     weather_data::weather_point::WeatherData,
     web_protocols::http_fetch,
 };
-use std::process::exit;
 
-fn main() {
+use std::{process::exit};
+
+#[tokio::main]
+async fn main() {
     env_logger::builder()
         .filter_level(log::LevelFilter::Debug)
         .init();
 
+    let geo_location_data= match geo_location::geo_data::local_from_public_ip().await {
+            Ok(location_data) => location_data,
+            Err(error) => {
+                log::error!("{}", error);
+                exit(-1)
+            }
+        };
+
+
     let url_config = UrlConfig::new(
-        40.6936,
-        89.5890,
+        geo_location_data.get_latitude(),
+        geo_location_data.get_longitude(),
         HourlyTempFromGround::TempAt2m,
         true,
         true,
@@ -45,7 +57,7 @@ fn main() {
         Err(_) => {
             log::error!("cannot parse json data");
             exit(-3);
-        },
+        }
     };
 
     let weather_data = WeatherData::parse_from(weather_json);
@@ -58,10 +70,13 @@ fn main() {
             let mut sorted_time: Vec<&i64> = data_points.keys().collect();
             sorted_time.sort();
             for timestamp in sorted_time {
-                log::debug!("{}", match data_points.get(timestamp) {
-                    Some(data_point) => data_point,
-                    None => exit(-3)
-                })
+                log::debug!(
+                    "{}",
+                    match data_points.get(timestamp) {
+                        Some(data_point) => data_point,
+                        None => exit(-3),
+                    }
+                )
             }
         }
         Err(error) => log::error!("{}", error),
