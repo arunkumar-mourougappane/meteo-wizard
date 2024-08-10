@@ -5,7 +5,7 @@ use meteo_wizard::{
     web_protocols::http_fetch,
 };
 
-use std::{process::exit};
+use std::process::exit;
 
 #[tokio::main]
 async fn main() {
@@ -13,14 +13,13 @@ async fn main() {
         .filter_level(log::LevelFilter::Debug)
         .init();
 
-    let geo_location_data= match geo_location::geo_data::local_from_public_ip().await {
-            Ok(location_data) => location_data,
-            Err(error) => {
-                log::error!("{}", error);
-                exit(-1)
-            }
-        };
-
+    let geo_location_data = match geo_location::geo_data::local_from_public_ip().await {
+        Ok(location_data) => location_data,
+        Err(error) => {
+            log::error!("{}", error);
+            exit(-1)
+        }
+    };
 
     let url_config = UrlConfig::new(
         geo_location_data.get_latitude(),

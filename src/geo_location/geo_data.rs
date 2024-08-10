@@ -1,5 +1,6 @@
 use std::net::IpAddr;
 
+use geo_rust::{get_nearest_postcode, get_postal_data, Country, GeoLocation};
 use ipgeolocate::{Locator, Service};
 use postcode::Postcode;
 use serde::Serialize;
@@ -15,6 +16,8 @@ pub enum GeoLocationError {
     CannotParseFromPostCode(#[from] postcode::Error),
     #[error("Cannot obtain location using IP geolocate.")]
     GeolocationError(#[from] ipgeolocate::GeoError),
+    #[error("Cannot obtain location coordinates.")]
+    CoordinatesParseError,
     #[error("Cannot parse `{0}` to `{1}.")]
     ParseError(String, String),
     #[error("unknown data store error")]
@@ -155,4 +158,33 @@ pub async fn local_from_public_ip() -> Result<GeoLocationData, GeoLocationError>
             Err(GeoLocationError::GeolocationError(error))
         }
     }
+}
+
+pub async fn locate_from_coordinates(
+    latitude: f64,
+    longitude: f64,
+) -> Result<GeoLocationData, GeoLocationError> {
+    let geonames_data = get_postal_data(Country::All);
+    let location = GeoLocation {
+        latitude,
+        longitude,
+    };
+    let location_data = match get_nearest_postcode(location, &geonames_data) {
+        Some(location_data) => location_data,
+        None => return Err(GeoLocationError::CoordinatesParseError),
+    };
+    let postal_code = location_data.postal_code.clone();
+
+    let ip_address = match public_ip::addr().await {
+        Some(ip) => ip_addr_to_string(ip),
+        None => return Err(GeoLocationError::CannotParseIP),
+    };
+
+    Ok(GeoLocationData::new(
+        latitude,
+        longitude,
+        ip_address,
+        postal_code,
+        "".to_owned(),
+    ))
 }

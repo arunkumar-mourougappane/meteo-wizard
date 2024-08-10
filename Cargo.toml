@@ -29,3 +29,4 @@ postcode = "0.1.1"
 public-ip = "0.2.2"
 ipgeolocate = "0.3.6"
 tokio = { version = "1.39.2", features = ["full", "fs"] }
+geo_rust = "0.4.1"
